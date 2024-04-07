@@ -4,7 +4,9 @@ from fastapi import FastAPI, UploadFile, File
 from typing import Optional
 import os
 from pathlib import Path
-
+import threading
+import concurrent.futures
+import time
 # from langchain.llms import OpenAI
 # from langchain.agents import ConversationalAgent
 # from langchain.chains import Chain
@@ -56,30 +58,65 @@ def read_root():
 
 @app.post("/upload-media")
 async def upload_media(file: UploadFile = File(...)):
-  """
-  Upload media file endpoint.
-  """
-  filename = file.filename
-  content_type = file.content_type
-  file_content = await file.read()
+    """
+    Upload media file endpoint.
+    """
+    filename = file.filename
+    content_type = file.content_type
+    file_content = await file.read()
 
-  # Save the uploaded file (replace with your actual logic)
-#   os.mkdir("media")
-  with open(f"media/{filename}", "wb") as f:
-      f.write(file_content)
-  split_mp3(f"media/{filename}")
+    # Save the uploaded file (replace with your actual logic)
+    timeA = time.time()
+    os.makedirs("media", exist_ok=True)
+    with open(f"media/{filename}", "wb") as f:
+        f.write(file_content)
+    timeB = time.time()
+    split_mp3(f"media/{filename}")
+    timeC = time.time()
+    file_name = Path(filename).stem
+    print(os.listdir(f"media/{file_name}"))
+    transcriptions = []
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = [executor.submit(transcribe_audio, f"media/{file_name}/{file}") for file in os.listdir(f"media/{file_name}")]
 
-    
+        for future in concurrent.futures.as_completed(futures):
+            try:
+                transcription = future.result()
+                transcriptions.append(transcription)
+            except Exception as e:
+                print(f"Error transcribing file: {e}")  # Handle potential errors gracefully
+    timeD = time.time()
+    print(f"Time to save file: {timeB - timeA}")
+    print(f"Time to split file: {timeC - timeB}")
+    print(f"Time to transcribe file: {timeD - timeC}")
+    return "\n".join(transcriptions)
 
-  print(os.listdir("media"))
-  return {
-      "message": f"File {filename} uploaded successfully!",
-      "filename": filename,
-      "content_type": content_type,
-  }
+    # transcription = ""
+    # for file in os.listdir(f"media/{file_name}"):
+    #     audio_file = open(f"media/{file_name}/{file}", "rb")
+    #     transcription = transcription + client.audio.transcriptions.create(
+    #         model="whisper-1", 
+    #         file=audio_file, 
+    #         response_format="text"
+    #     )
+    #     print(transcription)
+    # return transcription
 
 
-def split_mp3(input_file_path, chunk_size_mb=24):
+def transcribe_audio(file_path):
+    clients = OpenAI(
+    api_key=openai_api_key,
+    )
+    with open(file_path, "rb") as audio_file:
+        transcription = clients.audio.transcriptions.create(
+            model="whisper-1",
+            file=audio_file,
+            response_format="text"
+        )
+    return transcription
+
+
+def split_mp3(input_file_path, chunk_size_mb=2):
     # 파일 경로에서 파일명(확장자 제외) 추출
     file_name = Path(input_file_path).stem
     output_dir = "media/"+file_name
