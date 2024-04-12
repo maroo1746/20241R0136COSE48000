@@ -4,14 +4,14 @@ CREATE TABLE IF NOT EXISTS course (
     user_id integer,
     course_name varchar(255),
     content text,
-    summary text,
+    summary text
 );
 
 CREATE TABLE IF NOT EXISTS quiz (
     id SERIAL PRIMARY KEY,
     timestamp timestamp,
     course_id integer,
-    question text,
+    question text
 );
 
 CREATE TABLE IF NOT EXISTS user_answer (
@@ -19,13 +19,13 @@ CREATE TABLE IF NOT EXISTS user_answer (
     timestamp timestamp,
     quiz_id integer,
     answer text,
-    attempt integer,
+    attempt integer
 );
 
 CREATE TABLE IF NOT EXISTS editing (
     id SERIAL PRIMARY KEY,
     timestamp timestamp,
-    answer_id integer,
+    answer_id integer
 );
 
 -- insert some test data
@@ -48,4 +48,3 @@ INSERT INTO editing (timestamp, answer_id) VALUES
     (NOW(), 1),
     (NOW(), 2);
 
-    
