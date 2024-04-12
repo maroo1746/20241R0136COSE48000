@@ -78,7 +78,6 @@ async def upload_media(file: UploadFile = File(...)):
     transcriptions = []
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [executor.submit(transcribe_audio, f"media/{file_name}/{file}") for file in os.listdir(f"media/{file_name}")]
-
         for future in concurrent.futures.as_completed(futures):
             try:
                 transcription = future.result()
