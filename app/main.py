@@ -74,21 +74,32 @@ async def upload_media(file: UploadFile = File(...)):
     split_mp3(f"media/{filename}")
     timeC = time.time()
     file_name = Path(filename).stem
-    print(os.listdir(f"media/{file_name}"))
     transcriptions = []
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = [executor.submit(transcribe_audio, f"media/{file_name}/{file}") for file in os.listdir(f"media/{file_name}")]
-        for future in concurrent.futures.as_completed(futures):
+    with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+        future_to_file_path = {executor.submit(transcribe_audio, f"media/{file_name}/{file_path}"): file_path
+                               for file_path in os.listdir(f"media/{file_name}")
+                               if file_path.endswith(".mp3")}
+
+        for future in concurrent.futures.as_completed(future_to_file_path):
             try:
+                file_path = future_to_file_path[future]
                 transcription = future.result()
-                transcriptions.append(transcription)
+                transcriptions.append((file_path, transcription))  # Store file path with transcript
             except Exception as e:
-                print(f"Error transcribing file: {e}")  # Handle potential errors gracefully
+                print(f"Error transcribing file: {file_path} - {e}")
+
+    # Sort transcriptions based on file paths for order preservation
+    transcriptions.sort(key=lambda x: x[0])  # Sort by the first element (file path)
+
+    # Extract sorted transcripts (remove file paths if not needed)
+    sorted_transcripts = [t for t in transcriptions]  # Extract only transcripts
+
+    
     timeD = time.time()
     print(f"Time to save file: {timeB - timeA}")
     print(f"Time to split file: {timeC - timeB}")
     print(f"Time to transcribe file: {timeD - timeC}")
-    return "\n".join(transcriptions)
+    return sorted_transcripts
 
     # transcription = ""
     # for file in os.listdir(f"media/{file_name}"):
@@ -131,7 +142,7 @@ def split_mp3(input_file_path, chunk_size_mb=2):
         part_num = 1
 
         while chunk:
-            output_file_path = os.path.join(output_dir, f"{file_name}_{part_num}.mp3")
+            output_file_path = os.path.join(output_dir, f"{file_name}_{part_num:03d}.mp3")
             with open(output_file_path, 'wb') as chunk_file:
                 chunk_file.write(chunk)
             part_num += 1
