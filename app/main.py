@@ -1,15 +1,20 @@
 from openai import OpenAI
-    
-from fastapi import FastAPI, UploadFile, File
+
+from fastapi import FastAPI, UploadFile, File, Depends
+from fastapi.middleware.cors import CORSMiddleware
+
 from typing import Optional
 import os
 from pathlib import Path
 import threading
 import concurrent.futures
 import time
+
 # from langchain.llms import OpenAI
 # from langchain.agents import ConversationalAgent
 # from langchain.chains import Chain
+
+from prompt import question_system_prompt, question_response_prompt
 
 
 openai_api_key = "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"
@@ -35,15 +40,15 @@ app = FastAPI()
 def read_root():
     test_prompt = "Tell me a story about a dragon and a wizard."
     chat_completion = client.chat.completions.create(
-    messages=[
-        {
-            "role": "user",
-            "content": test_prompt,
-        }
-    ],
-    model="gpt-3.5-turbo",
+        messages=[
+            {
+                "role": "user",
+                "content": test_prompt,
+            }
+        ],
+        model="gpt-3.5-turbo",
     )
-     # answer = chat_completion['choices'][0]['message']['content']
+    # answer = chat_completion['choices'][0]['message']['content']
     # expected_response = "Once upon a time, in a world of magic and wonder, there lived a powerful dragon..."
 
     # Run the prompt through the ChatGPT agent and check the response
@@ -52,8 +57,7 @@ def read_root():
 
     # completion = chat_completion.parse()  # get the object that `chat.completions.create()` would have returned
     print(chat_completion)
-    return {"Hello":chat_completion}
-
+    return {"Hello": chat_completion}
 
 
 @app.post("/upload-media")
@@ -77,13 +81,18 @@ async def upload_media(file: UploadFile = File(...)):
     print(os.listdir(f"media/{file_name}"))
     transcriptions = []
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = [executor.submit(transcribe_audio, f"media/{file_name}/{file}") for file in os.listdir(f"media/{file_name}")]
+        futures = [
+            executor.submit(transcribe_audio, f"media/{file_name}/{file}")
+            for file in os.listdir(f"media/{file_name}")
+        ]
         for future in concurrent.futures.as_completed(futures):
             try:
                 transcription = future.result()
                 transcriptions.append(transcription)
             except Exception as e:
-                print(f"Error transcribing file: {e}")  # Handle potential errors gracefully
+                print(
+                    f"Error transcribing file: {e}"
+                )  # Handle potential errors gracefully
     timeD = time.time()
     print(f"Time to save file: {timeB - timeA}")
     print(f"Time to split file: {timeC - timeB}")
@@ -94,8 +103,8 @@ async def upload_media(file: UploadFile = File(...)):
     # for file in os.listdir(f"media/{file_name}"):
     #     audio_file = open(f"media/{file_name}/{file}", "rb")
     #     transcription = transcription + client.audio.transcriptions.create(
-    #         model="whisper-1", 
-    #         file=audio_file, 
+    #         model="whisper-1",
+    #         file=audio_file,
     #         response_format="text"
     #     )
     #     print(transcription)
@@ -104,13 +113,11 @@ async def upload_media(file: UploadFile = File(...)):
 
 def transcribe_audio(file_path):
     clients = OpenAI(
-    api_key=openai_api_key,
+        api_key=openai_api_key,
     )
     with open(file_path, "rb") as audio_file:
         transcription = clients.audio.transcriptions.create(
-            model="whisper-1",
-            file=audio_file,
-            response_format="text"
+            model="whisper-1", file=audio_file, response_format="text"
         )
     return transcription
 
@@ -118,7 +125,7 @@ def transcribe_audio(file_path):
 def split_mp3(input_file_path, chunk_size_mb=2):
     # 파일 경로에서 파일명(확장자 제외) 추출
     file_name = Path(input_file_path).stem
-    output_dir = "media/"+file_name
+    output_dir = "media/" + file_name
 
     # 출력 디렉터리 생성 (이미 존재하는 경우 무시)
     os.makedirs(output_dir, exist_ok=True)
@@ -126,17 +133,51 @@ def split_mp3(input_file_path, chunk_size_mb=2):
     # 파일을 바이트로 계산된 크기로 분할
     chunk_size = chunk_size_mb * 1024 * 1024  # MB to bytes
 
-    with open(input_file_path, 'rb') as f:
+    with open(input_file_path, "rb") as f:
         chunk = f.read(chunk_size)
         part_num = 1
 
         while chunk:
             output_file_path = os.path.join(output_dir, f"{file_name}_{part_num}.mp3")
-            with open(output_file_path, 'wb') as chunk_file:
+            with open(output_file_path, "wb") as chunk_file:
                 chunk_file.write(chunk)
             part_num += 1
             chunk = f.read(chunk_size)
 
+
 @app.get("/home")
 def read_home():
     return {"Hello": "Home"}
+
+
+@app.post("/chapter/{chapter_id}/question")
+def create_question(chapter_id: int, count: Optional[int] = 5):
+    contents = "This is a test."
+    chat_completion = client.chat.completions.create(
+        messages=[
+            {
+                "role": "system",
+                "content": question_system_prompt % count
+                + contents
+                + question_response_prompt,
+            }
+        ],
+        model="gpt-3.5-turbo",
+    )
+    return chat_completion.choices[0].message.content
+
+
+# app.include_router(users.router, prefix="/user", tags=["user"])
+# TODO: Add routers
+
+origins = [
+    "http://localhost:8000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,  # allow cookie  (JWT)
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
