@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import chromadb
-from langchain.vectorstores import Chroma
+from langchain_community.vectorstores import Chroma
 from app import config
 from langchain.embeddings.openai import OpenAIEmbeddings
 

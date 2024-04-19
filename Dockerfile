@@ -1,13 +1,17 @@
-FROM python:3.9-slim
+FROM python:3.9 AS builder
+WORKDIR /bulid
+
+COPY requirements_all.txt requirements.txt
+COPY ./.pip ~/.pip
+
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+
+FROM python:3.9-slim AS app
 WORKDIR /code
 
-COPY ./requirements.txt /code/requirements.txt
+COPY --from=builder /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
 COPY .env /code/.env
- 
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
-
-# Stage 2: Create final image with Django project
 COPY ./app /code/app
 EXPOSE 8000
 
-# CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

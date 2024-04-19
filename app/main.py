@@ -8,12 +8,12 @@ import os
 from pathlib import Path
 import concurrent.futures
 import time
+from datetime import datetime, timedelta, timezone
 
 from app import config
+from app import models
 from app.prompt import question_system_prompt, question_response_prompt
-
 from app.dependencies import get_db
-from datetime import datetime, timedelta, timezone
 
 # from langchain.llms import OpenAI
 # from langchain.agents import ConversationalAgent
