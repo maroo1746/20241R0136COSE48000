@@ -14,7 +14,7 @@
 #     #     && python ./toyproject/manage.py runserver 0.0.0.0:8000
 #     #   "
 
-version: "3.9"  # Adjust the version if needed based on your Docker environment
+version: "3.9" # Adjust the version if needed based on your Docker environment
 
 services:
   # elasticsearch:
@@ -36,6 +36,12 @@ services:
       - 5432:5432
     volumes:
       - "./init/:/docker-entrypoint-initdb.d/"
+
+  chroma:
+    image: chromadb/chroma
+    ports:
+      - 8080:8080
+
   fastapi:
     image: fastapi
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload

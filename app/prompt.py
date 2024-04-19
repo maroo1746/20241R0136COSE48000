@@ -4,6 +4,7 @@ The type can be 'choice' or 'short', or 'long'.
 The answer should be the correct answer to the question.
 The choices should be a dictionary with the key as the choice number and the value as the choice.
 The reason should be an explanation of why the answer is correct.
+Your response should be Korean.
 
 The contents are as follows:
 """

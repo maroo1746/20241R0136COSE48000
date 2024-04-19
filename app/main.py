@@ -6,22 +6,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
 import os
 from pathlib import Path
-import threading
 import concurrent.futures
 import time
+
+from app import config
+from app.prompt import question_system_prompt, question_response_prompt
 
 # from langchain.llms import OpenAI
 # from langchain.agents import ConversationalAgent
 # from langchain.chains import Chain
 
-from prompt import question_system_prompt, question_response_prompt
-
-
-openai_api_key = "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"
-
 client = OpenAI(
     # This is the default and can be omitted
-    api_key=openai_api_key,
+    api_key=config.OPENAI_API_KEY,
 )
 
 
