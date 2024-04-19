@@ -12,6 +12,9 @@ import time
 from app import config
 from app.prompt import question_system_prompt, question_response_prompt
 
+from app.dependencies import get_db
+from datetime import datetime, timedelta, timezone
+
 # from langchain.llms import OpenAI
 # from langchain.agents import ConversationalAgent
 # from langchain.chains import Chain
@@ -121,7 +124,7 @@ async def upload_media(file: UploadFile = File(...)):
 
 def transcribe_audio(file_path):
     clients = OpenAI(
-        api_key=openai_api_key,
+        api_key=config.OPENAI_API_KEY,
     )
     with open(file_path, "rb") as audio_file:
         transcription = clients.audio.transcriptions.create(
@@ -158,6 +161,20 @@ def split_mp3(input_file_path, chunk_size_mb=2):
 @app.get("/home")
 def read_home():
     return {"Hello": "Home"}
+
+
+@app.post("/chapter")
+def create_chapter(title: str, contents: str, db=Depends(get_db)):
+    now = datetime.now(timezone(timedelta(hours=9)))
+    # TODO: Add chapter model
+    chapter = models.Chapter(
+        title=title,
+        contents=contents,
+        created_at=now,
+    )
+    db.add(chapter)
+    db.flush()
+    return chapter
 
 
 @app.post("/chapter/{chapter_id}/question")
