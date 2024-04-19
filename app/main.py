@@ -163,22 +163,22 @@ def read_home():
     return {"Hello": "Home"}
 
 
-@app.post("/chapter")
-def create_chapter(title: str, contents: str, db=Depends(get_db)):
+@app.post("/lecture")
+def create_lecture(title: str, contents: str, db=Depends(get_db)):
     now = datetime.now(timezone(timedelta(hours=9)))
-    # TODO: Add chapter model
-    chapter = models.Chapter(
+    # TODO: Add lecture model
+    lecture = models.Lecture(
         title=title,
         contents=contents,
         created_at=now,
     )
-    db.add(chapter)
+    db.add(lecture)
     db.flush()
-    return chapter
+    return lecture
 
 
-@app.post("/chapter/{chapter_id}/question")
-def create_question(chapter_id: int, count: Optional[int] = 5):
+@app.post("/lecture/{lecture_id}/question")
+def create_question(lecture_id: int, count: Optional[int] = 5):
     contents = "This is a test."
     chat_completion = client.chat.completions.create(
         messages=[

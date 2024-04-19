@@ -12,8 +12,8 @@ class User(Base):
     email = Column(String, unique=True, nullable=False)
 
 
-class Chapter(Base):
-    __tablename__ = "chapter"
+class Lecture(Base):
+    __tablename__ = "lecture"
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("user.id"))
@@ -29,7 +29,7 @@ class Question(Base):
     __tablename__ = "question"
 
     id = Column(Integer, primary_key=True)
-    chapter_id = Column(Integer, ForeignKey("chapter.id"))
+    lecture_id = Column(Integer, ForeignKey("lecture.id"))
     question = Column(String, nullable=False)
     type = Column(String, nullable=False)
     answer = Column(String, nullable=False)
