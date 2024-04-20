@@ -12,24 +12,22 @@ class User(Base):
     email = Column(String, unique=True, nullable=False)
 
 
-class Lecture(Base):
-    __tablename__ = "lecture"
+class Course(Base):
+    __tablename__ = "course"
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("user.id"))
-    title = Column(String, nullable=False)
-    contents = Column(String, nullable=False)
-    created_date = Column(DateTime(timezone=True), nullable=False)
-    updated_date = Column(DateTime(timezone=True), nullable=False)
-    questions = Column(Integer, ForeignKey("question.id"))
+    course_name = Column(String, nullable=False)
+    content = Column(String, nullable=False)
+    timestamp = Column(DateTime(timezone=True), nullable=False)
     summary = Column(String, nullable=False, default="")
 
 
-class Question(Base):
-    __tablename__ = "question"
+class Quiz(Base):
+    __tablename__ = "quiz"
 
     id = Column(Integer, primary_key=True)
-    lecture_id = Column(Integer, ForeignKey("lecture.id"))
+    course_id = Column(Integer, ForeignKey("course.id"))
     question = Column(String, nullable=False)
     type = Column(String, nullable=False)
     answer = Column(String, nullable=False)

@@ -163,18 +163,34 @@ def read_home():
     return {"Hello": "Home"}
 
 
-@app.post("/lecture")
-def create_lecture(title: str, contents: str, db=Depends(get_db)):
+@app.get("/course")
+def read_course(db=Depends(get_db)):
+    return db.query(models.Course).all()
+
+
+@app.get("/course/{course_id}")
+def read_course(course_id: str, db=Depends(get_db)):
+    course_id = int(course_id)
+    course = db.query(models.Course).filter(models.Course.id == course_id).first()
+    if course is None:
+        return {"error": "Course not found"}
+    return course
+
+
+@app.post("/course")
+def create_course(title: str, content: str, summary: str = None, db=Depends(get_db)):
     now = datetime.now(timezone(timedelta(hours=9)))
-    # TODO: Add lecture model
-    lecture = models.Lecture(
-        title=title,
-        contents=contents,
-        created_at=now,
+    if summary is None:
+        summary = ""
+    course = models.Course(
+        course_name=title,
+        content=content,
+        summary=summary,
+        timestamp=now,
     )
-    db.add(lecture)
+    db.add(course)
     db.flush()
-    return lecture
+    return course
 
 
 @app.post("/lecture/{lecture_id}/question")

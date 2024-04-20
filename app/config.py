@@ -1,10 +1,8 @@
 import os
 
-print(os.environ)
 from dotenv import load_dotenv
 
 load_dotenv()
-print(os.environ)
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
