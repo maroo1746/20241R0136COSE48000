@@ -58,7 +58,6 @@ def update_course(
     course: schema.CourseInput,
     db: Session = Depends(get_db),
 ):
-    print(course)
     course_id = int(course_id)
     found_course = db.query(models.Course).filter(models.Course.id == course_id).first()
     if found_course is None:
@@ -80,7 +79,7 @@ def update_course(
 
     db.flush()
 
-    util.create_embeddings(found_course, user_id=1)
+    util.update_embeddings(found_course, user_id=1)
     return found_course
 
 

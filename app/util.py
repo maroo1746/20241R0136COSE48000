@@ -11,7 +11,7 @@ from pathlib import Path
 CHUNK_SIZE = 20
 
 splitter = RecursiveCharacterTextSplitter(
-    chunk_size=300,
+    chunk_size=1000,
     chunk_overlap=0,
     separators=["\n\n", "\n", "(?<=\. )", " ", ""],
     add_start_index=True,
@@ -19,7 +19,6 @@ splitter = RecursiveCharacterTextSplitter(
 
 
 def make_base_doc(course: schema.Course, user_id: int):
-    print(course)
 
     return Document(
         page_content=course.content,
@@ -41,13 +40,24 @@ def make_splits(doc: Document) -> list[Document]:
     return splits
 
 
+def update_embeddings(
+    course: schema.Course,
+    user_id: int,
+):
+    vdb = get_vectorstore()
+    emb_ids = vdb.get(where={"course_id": course.id})["ids"]
+    if emb_ids:
+        vdb.delete(emb_ids)
+
+    create_embeddings(course, user_id)
+
+
 def create_embeddings(course: schema.Course, user_id: int):
     doc = make_base_doc(course, user_id)
     splits = make_splits(doc)
 
     for i in range(0, len(splits), CHUNK_SIZE):
         vdb = get_vectorstore()
-        print(splits[i : i + CHUNK_SIZE])
         vdb.add_documents(splits[i : i + CHUNK_SIZE])
 
 
