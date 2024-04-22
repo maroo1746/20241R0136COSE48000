@@ -22,6 +22,9 @@ class Course(Base):
     timestamp = Column(DateTime(timezone=True), nullable=False)
     summary = Column(String, nullable=False, default="")
 
+    department = Column(String, nullable=False)
+    category = Column(String, nullable=False)
+
 
 class Quiz(Base):
     __tablename__ = "quiz"

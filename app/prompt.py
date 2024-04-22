@@ -31,3 +31,13 @@ question_response_prompt = """Your response MUST BE in the following format:
   }
 ]
 """
+
+correction_prompt = """
+The text below is extracted from a recording of a lecture on {department} given at the University of "{category}".
+Considering the lecture title, and department where the lecture takes place, correct any grammatically incorrect or spelling incorrect words and reprint the text below. Also, print out the major words of the lecture as English.
+For example, you should fix the sentence "시뮬러리티 쪽 진도가 약간 길어지긴 했는데 이제 멀웨어 분석과 관련된 거, " into " Simularity 쪽 진도가 약간 길어지긴 했는데 이제 malware 분석과 관련된 거".
+You must output only extracted text from the lecture recording you corrected.
+You should never say additional words such as "Yes, I understand." or "Sure!".
+JUST OUTPUT THE FIXED TEXT.
+Do not specifically mention what major words of the lecture you selected. 
+"""

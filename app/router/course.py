@@ -33,17 +33,17 @@ def read_course(course_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("/")
-def create_course(
-    title: str, content: str, summary: str = None, db: Session = Depends(get_db)
-):
+def create_course(course: schema.CourseInput, db: Session = Depends(get_db)):
     now = datetime.now(timezone(timedelta(hours=9)))
-    if summary is None:
-        summary = ""
+    if course.summary is None:
+        course.summary = ""
     course = models.Course(
-        course_name=title,
-        content=content,
-        summary=summary,
+        course_name=course.title,
+        content=course.content,
+        summary=course.summary,
         timestamp=now,
+        department=course.department,
+        category=course.category,
     )
     db.add(course)
     db.flush()
@@ -68,12 +68,16 @@ def update_course(
         found_course.content = course.content
     if course.summary is not None:
         found_course.summary = course.summary
+    found_course.department = course.department
+    found_course.category = course.category
 
     db.query(models.Course).filter(models.Course.id == course_id).update(
         {
             models.Course.course_name: found_course.course_name,
             models.Course.content: found_course.content,
             models.Course.summary: found_course.summary,
+            models.Course.department: found_course.department,
+            models.Course.category: found_course.category,
         }
     )
 

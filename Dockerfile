@@ -13,5 +13,4 @@ WORKDIR /code
 COPY --from=builder /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
 COPY .env /code/.env
 COPY ./app /code/app
-EXPOSE 8000
-
+EXPOSE 4123

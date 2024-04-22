@@ -1,16 +1,20 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>Media Upload</title>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Upload Media</h1>
-    <form method="post" enctype="multipart/form-data" action="http://localhost:8000/upload-media">
-        <input type="file" name="file">
-        <button type="submit">Upload</button>
+    <form
+      method="post"
+      enctype="multipart/form-data"
+      action="http://localhost:4123/upload-media"
+    >
+      <input type="file" name="file" />
+      <button type="submit">Upload</button>
     </form>
     <script>
-        // Handle potential JavaScript logic for file selection or validation (optional)
+      // Handle potential JavaScript logic for file selection or validation (optional)
     </script>
-</body>
+  </body>
 </html>

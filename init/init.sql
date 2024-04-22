@@ -4,7 +4,9 @@ CREATE TABLE IF NOT EXISTS course (
     user_id integer,
     course_name varchar(255),
     content text,
-    summary text
+    summary text,
+    department varchar(255),
+    category varchar(255)
 );
 
 CREATE TABLE IF NOT EXISTS quiz (
@@ -29,10 +31,10 @@ CREATE TABLE IF NOT EXISTS editing (
 );
 
 -- insert some test data
-INSERT INTO course (timestamp, user_id, course_name, content, summary) VALUES
-    (NOW(), 1, 'Course 1', 'Content 1', 'Summary 1'),
-    (NOW(), 1, 'Course 2', 'Content 2', 'Summary 2'),
-    (NOW(), 2, 'Course 3', 'Content 3', 'Summary 3');
+INSERT INTO course (timestamp, user_id, course_name, content, summary, department, category) VALUES
+    (NOW(), 1, 'Course 1', 'Content 1', 'Summary 1', 'Department 1', 'Category 1'),
+    (NOW(), 1, 'Course 2', 'Content 2', 'Summary 2', 'Department 2', 'Category 2'),
+    (NOW(), 2, 'Course 3', 'Content 3', 'Summary 3', 'Department 3', 'Category 3');
 
 INSERT INTO quiz (timestamp, course_id, question) VALUES 
     (NOW(), 1, 'Question 1'),

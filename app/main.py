@@ -1,12 +1,13 @@
 from openai import OpenAI
 
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 
 import os
 from pathlib import Path
 import concurrent.futures
 import time
+
 
 from app import config, router, util
 
@@ -19,7 +20,11 @@ app = FastAPI()
 
 
 @app.post("/upload-media")
-async def upload_media(file: UploadFile = File(...)):
+async def upload_media(
+    file: UploadFile = File(...),
+    department: str = Form(...),
+    category: str = Form(...),
+):
     """
     Upload media file endpoint.
     """
@@ -39,7 +44,8 @@ async def upload_media(file: UploadFile = File(...)):
     with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
         future_to_file_path = {
             executor.submit(
-                util.transcribe_audio, f"media/{file_name}/{file_path}"
+                util.transcribe_audio,
+                f"media/{file_name}/{file_path}",
             ): file_path
             for file_path in os.listdir(f"media/{file_name}")
             if file_path.endswith(".mp3")
@@ -65,11 +71,12 @@ async def upload_media(file: UploadFile = File(...)):
     print(f"Time to save file: {timeB - timeA}")
     print(f"Time to split file: {timeC - timeB}")
     print(f"Time to transcribe file: {timeD - timeC}")
+
     return sorted_transcripts
 
 
 origins = [
-    "http://localhost:8000",
+    "http://localhost:4123",
 ]
 
 app.add_middleware(

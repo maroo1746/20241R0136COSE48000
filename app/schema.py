@@ -6,6 +6,8 @@ class CourseInput(BaseModel):
     title: Optional[str] = None
     content: Optional[str] = None
     summary: Optional[str] = None
+    department: str
+    category: str
 
 
 class Course(BaseModel):
@@ -14,3 +16,6 @@ class Course(BaseModel):
     content: str
     summary: Optional[str] = None
     timestamp: str
+
+    department: str
+    category: str
