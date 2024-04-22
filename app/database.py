@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 import chromadb
 from langchain_community.vectorstores import Chroma
 from app import config
-from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 
 engine = create_engine(
     config.DB_URL,
@@ -17,14 +17,8 @@ Base = declarative_base()
 
 embedding = OpenAIEmbeddings(openai_api_key=config.OPENAI_API_KEY, chunk_size=1)
 
-if config.PRODUCTION:
-    client = chromadb.HttpClient(host="localhost", port=8080)
-    vectorstore_config = {"embedding_function": embedding, "client": client}
-else:
-    vectorstore_config = {
-        "embedding_function": embedding,
-        "persist_directory": "./chroma_db",
-    }
+client = chromadb.HttpClient(host="chroma", port=8000)
+vectorstore_config = {"embedding_function": embedding, "client": client}
 
 
 def get_vectorstore():
