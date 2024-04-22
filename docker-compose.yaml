@@ -1,31 +1,6 @@
-# version: "3"
-
-# services:
-#   web:
-#     build:
-#       #context: .
-#       # dockerfile: dockerfile
-#     volumes:
-#       - .:/app
-#     ports:
-#       - 8000:8000
-#     # command: bash -c "
-#     #     django-admin startproject toyproject
-#     #     && python ./toyproject/manage.py runserver 0.0.0.0:8000
-#     #   "
-
-version: "3.9" # Adjust the version if needed based on your Docker environment
+version: "3.9"
 
 services:
-  # elasticsearch:
-  #   image: elasticsearch:8.13.0
-  #   environment:
-  #     - discovery.type=single-node
-  #   ports:
-  #     - 9200:9200
-  #   volumes:
-  #     - elasticsearch-data:/var/lib/elasticsearch
-
   db:
     image: postgres:13.3
     environment:
@@ -49,6 +24,3 @@ services:
       - 8000:8000
     volumes:
       - ./app:/code/app
-    # depends_on:
-    #   - elasticsearch
-  # Replace 'main:app' with the actual entrypoint in your Fast API application
