@@ -4,11 +4,18 @@ from sqlalchemy.orm import Session
 from typing import Optional
 from datetime import datetime, timedelta, timezone
 
-from app import models, schema, util
+from openai import OpenAI
+
+from app import models, schema, util, config
 from app.prompt import question_system_prompt, question_response_prompt
 from app.dependencies import get_db
 
 router = APIRouter(prefix="/course", tags=["course"])
+
+
+client = OpenAI(
+    api_key=config.OPENAI_API_KEY,
+)
 
 
 @router.get("/")

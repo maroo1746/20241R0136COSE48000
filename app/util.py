@@ -1,8 +1,12 @@
 from langchain.docstore.document import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-from app import schema
+from app import schema, config
 from app.database import get_vectorstore
+
+from openai import OpenAI
+import os
+from pathlib import Path
 
 CHUNK_SIZE = 20
 
