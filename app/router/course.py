@@ -48,7 +48,7 @@ def create_course(course: schema.CourseInput, db: Session = Depends(get_db)):
     db.add(course)
     db.flush()
 
-    util.create_embeddings(course, user_id=1)
+    # util.create_embeddings(course, user_id=1)
     return course
 
 
@@ -83,7 +83,7 @@ def update_course(
 
     db.flush()
 
-    util.update_embeddings(found_course, user_id=1)
+    # util.update_embeddings(found_course, user_id=1)
     return found_course
 
 

@@ -98,7 +98,7 @@ def summarize_text(content, department, category):
         api_key=config.OPENAI_API_KEY,
     )
     summary = client.chat.completions.create(
-        model="gpt-4-turbo",
+        model="gpt-4",
         messages=[
             {
                 "role": "system",
@@ -113,7 +113,12 @@ def summarize_text(content, department, category):
 
 
 def split_text(text):
-    return splitter.split_text(text)
+    return RecursiveCharacterTextSplitter(
+        chunk_size=7000,
+        chunk_overlap=0,
+        separators=["\n\n", "\n", "(?<=\. )"],
+        add_start_index=True,
+    ).split_text(text)
 
 
 def split_mp3(input_file_path, chunk_size_mb=2):

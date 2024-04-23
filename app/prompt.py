@@ -51,6 +51,9 @@ Remember, this is a summary of the lecture.
 You must never include information in your summary from sources other than the lecture materials and lecture recordings I have presented!
 And this is part of the recording of the lecture.
 So, you MUST not use words like “The lecture concluded~”.
-Lastly, You must output only the summary.
 You should never say additional words such as "Yes, I understand." or “Sure!”.
-JUST OUTPUT THE SUMMERY."""
+YOUR OUTPUT SHOULD BE IN KOREAN AND MARKDOWN FORMAT.
+The title level starts with h1, and do not include numbering.
+JUST OUTPUT THE SUMMARY, NOTHING ELSE.
+Organize the contents of the lecture in parallel without a title such as "{category}", "{category} 강의 내용".
+"""
