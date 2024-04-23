@@ -19,3 +19,9 @@ class Course(BaseModel):
 
     department: str
     category: str
+
+
+class SummaryInput(BaseModel):
+    content: str
+    department: str
+    category: str

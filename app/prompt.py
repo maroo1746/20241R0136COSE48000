@@ -33,11 +33,24 @@ question_response_prompt = """Your response MUST BE in the following format:
 """
 
 correction_prompt = """
-The text below is extracted from a recording of a lecture on {department} given at the University of "{category}".
-Considering the lecture title, and department where the lecture takes place, correct any grammatically incorrect or spelling incorrect words and reprint the text below. Also, print out the major words of the lecture as English.
+The text below is extracted from a recording of a lecture on {category} given at the University of "{department}".
+Considering the lecture title, and department where the lecture takes place, correct any grammatically incorrect or spelling incorrect words and reprint the text below.
+Also, convert the major words of the lecture as English.
 For example, you should fix the sentence "시뮬러리티 쪽 진도가 약간 길어지긴 했는데 이제 멀웨어 분석과 관련된 거, " into " Simularity 쪽 진도가 약간 길어지긴 했는데 이제 malware 분석과 관련된 거".
 You must output only extracted text from the lecture recording you corrected.
 You should never say additional words such as "Yes, I understand." or "Sure!".
 JUST OUTPUT THE FIXED TEXT.
-Do not specifically mention what major words of the lecture you selected. 
 """
+
+summary_prompt = """The text below is extracted from a recording of a lecture on "{category}" given at the University of "{department} Science". 
+Please refer to the lecture title, and department where the lecture takes place, present the key contents of the text below in an structured form.
+However, it should not be summarized too briefly.
+Since students will be studying for exams based on your summary, it should be including all key concepts and detailed explanation for that.
+Also, if there is content in the lecture that is presumed to invite students to attend, ignore that part and do not summarize it.
+Remember, this is a summary of the lecture.
+You must never include information in your summary from sources other than the lecture materials and lecture recordings I have presented!
+And this is part of the recording of the lecture.
+So, you MUST not use words like “The lecture concluded~”.
+Lastly, You must output only the summary.
+You should never say additional words such as "Yes, I understand." or “Sure!”.
+JUST OUTPUT THE SUMMERY."""

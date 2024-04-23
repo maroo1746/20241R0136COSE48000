@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from openai import OpenAI
 
 from app import models, schema, util, config
-from app.prompt import question_system_prompt, question_response_prompt
+from app.prompt import question_system_prompt, question_response_prompt, summary_prompt
 from app.dependencies import get_db
 
 router = APIRouter(prefix="/course", tags=["course"])

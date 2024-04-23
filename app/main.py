@@ -9,7 +9,8 @@ import concurrent.futures
 import time
 
 
-from app import config, router, util
+from app import config, router, util, schema
+from app.prompt import summary_prompt
 
 client = OpenAI(
     api_key=config.OPENAI_API_KEY,
@@ -46,6 +47,8 @@ async def upload_media(
             executor.submit(
                 util.transcribe_audio,
                 f"media/{file_name}/{file_path}",
+                department,
+                category,
             ): file_path
             for file_path in os.listdir(f"media/{file_name}")
             if file_path.endswith(".mp3")
@@ -73,6 +76,40 @@ async def upload_media(
     print(f"Time to transcribe file: {timeD - timeC}")
 
     return sorted_transcripts
+
+
+@app.post("/summary")
+def create_summary(
+    summaryInput: schema.SummaryInput,
+):
+    contents = util.split_text(summaryInput.content)
+
+    for content in contents:
+        print(len(content))
+
+    summaries = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+        future_to_content = {
+            executor.submit(
+                util.summarize_text,
+                content,
+                summaryInput.department,
+                summaryInput.category,
+            ): content
+            for content in contents
+        }
+
+        for future in concurrent.futures.as_completed(future_to_content):
+            try:
+                content = future_to_content[future]
+                summary = future.result()
+                summaries.append(summary)
+            except Exception as e:
+                print(f"Error summarizing content: {content} - {e}")
+
+    summaries.sort(key=lambda x: x[0])
+
+    return {"summaries": summaries}
 
 
 origins = [

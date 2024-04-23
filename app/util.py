@@ -3,6 +3,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 from app import schema, config
 from app.database import get_vectorstore
+from app.prompt import correction_prompt, summary_prompt
 
 from openai import OpenAI
 import os
@@ -11,9 +12,9 @@ from pathlib import Path
 CHUNK_SIZE = 20
 
 splitter = RecursiveCharacterTextSplitter(
-    chunk_size=1000,
+    chunk_size=3000,
     chunk_overlap=0,
-    separators=["\n\n", "\n", "(?<=\. )", " ", ""],
+    separators=["\n\n", "\n", "(?<=\. )"],
     add_start_index=True,
 )
 
@@ -61,15 +62,58 @@ def create_embeddings(course: schema.Course, user_id: int):
         vdb.add_documents(splits[i : i + CHUNK_SIZE])
 
 
-def transcribe_audio(file_path):
-    clients = OpenAI(
+def transcribe_audio(file_path, department, category):
+    client = OpenAI(
         api_key=config.OPENAI_API_KEY,
     )
     with open(file_path, "rb") as audio_file:
-        transcription = clients.audio.transcriptions.create(
+        transcription = client.audio.transcriptions.create(
             model="whisper-1", file=audio_file, response_format="text"
         )
+        transcription = (
+            client.chat.completions.create(
+                model="gpt-4-turbo",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": correction_prompt.format(
+                            department=department, category=category
+                        ),
+                    },
+                    {
+                        "role": "system",
+                        "content": transcription,
+                    },
+                ],
+            )
+            .choices[0]
+            .message.content
+        )
+        print(transcription)
     return transcription
+
+
+def summarize_text(content, department, category):
+    client = OpenAI(
+        api_key=config.OPENAI_API_KEY,
+    )
+    summary = client.chat.completions.create(
+        model="gpt-4-turbo",
+        messages=[
+            {
+                "role": "system",
+                "content": summary_prompt.format(
+                    department=department, category=category
+                ),
+            },
+            {"role": "system", "content": content},
+        ],
+    )
+    return summary.choices[0].message.content
+
+
+def split_text(text):
+    return splitter.split_text(text)
 
 
 def split_mp3(input_file_path, chunk_size_mb=2):
