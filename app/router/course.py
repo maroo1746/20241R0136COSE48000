@@ -123,6 +123,8 @@ def create_question(
 
     result = []
 
+    db.query(models.Quiz).filter(models.Quiz.course_id == course_id).delete()
+
     for index, embedding in enumerate(embeddings["documents"]):
         print(index)
         chat_completion = client.chat.completions.create(
@@ -135,7 +137,7 @@ def create_question(
                 },
                 {"role": "system", "content": question_response_prompt},
             ],
-            model="gpt-3.5-turbo",
+            model="gpt-4-turbo",
         )
         for message in chat_completion.choices[0].message.content.split("\n"):
             if message.strip() != "":
@@ -180,16 +182,16 @@ def create_question(
                 "content": advice_prompt.format(
                     question=question.question,
                     content=embedding,
-                    answer=input.answer,
                 ),
             },
+            {"role": "user", "content": input.answer},
         ],
-        model="gpt-3.5-turbo",
+        model="gpt-4-turbo",
     )
 
     advice = chat_completion.choices[0].message.content
     db.query(models.Quiz).filter(models.Quiz.id == question_id).update(
-        {models.Quiz.advice: advice}
+        {models.Quiz.advice: advice, models.Quiz.answer: input.answer}
     )
     db.flush()
     return {"advice": advice}

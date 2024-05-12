@@ -1,7 +1,7 @@
 question_system_prompt = """We’ll help students review the class by making some quiz for them.
 Based on the contents of course below, give {count} descriptive question related to important concepts. The answer to the question must be inside the course content. You must output only the quiz.
 You should never say additional words such as "Yes, I understand." or “Sure!”.
-JUST OUTPUT THE QUIZ.
+JUST OUTPUT THE QUIZ. DO NOT INCLUDE PREFIXES LIKE "1. "
 Your question should be in Korean.
 
 The course contents are as follows: {content}
@@ -31,17 +31,20 @@ Also, if there is content in the lecture that is presumed to invite students to 
 Remember, this is a summary of the lecture.
 You must never include information in your summary from sources other than the lecture materials and lecture recordings I have presented!
 And this is part of the recording of the lecture.
-So, you MUST not use words like “The lecture concluded~”.
+"""
+
+summary_notice_prompt = """you MUST not use words like “The lecture concluded~”.
 You should never say additional words such as "Yes, I understand." or “Sure!”.
 YOUR OUTPUT SHOULD BE IN KOREAN AND MARKDOWN FORMAT.
-The title level starts with h1, and do not include numbering.
+The title level starts with h1, and DO NOT include numbering.
 JUST OUTPUT THE SUMMARY, NOTHING ELSE.
 Organize the contents of the lecture in parallel. DO NOT give the main title (such as "{category} 강의 내용") and conclusion you made.
 """
 
-advice_prompt = """Now, we will give some feedback to the student’s answer.
+advice_prompt = """Now, we will give some feedback to the user's answer.
 Based on the contents of following content, give some feedback to the answer.
 You should give detail feedback by referring to what part of the class material is written and how it is written.
+Please write a better answer yourself and let user know.
 The answer should be in Korean.
 The answer should be more than 500 characters.
 You must output only the text of the feedback.
@@ -51,7 +54,4 @@ content:
 {content}
 
 question:
-{question}
-
-The answer is:
-{answer}"""
+{question}"""

@@ -3,7 +3,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 from app import schema, config
 from app.database import get_vectorstore
-from app.prompt import correction_prompt, summary_prompt
+from app.prompt import correction_prompt, summary_prompt, summary_notice_prompt
 
 from openai import OpenAI
 import os
@@ -116,6 +116,7 @@ def summarize_text(content, department, category):
                 ),
             },
             {"role": "system", "content": content},
+            {"role": "system", "content": summary_notice_prompt},
         ],
     )
     return summary.choices[0].message.content
