@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, String, DateTime, ForeignKey
+from sqlalchemy import Integer, String, DateTime, ForeignKey, Boolean
 from sqlalchemy.sql.schema import Column
 
 from app.database import Base
@@ -25,14 +25,15 @@ class Course(Base):
     department = Column(String, nullable=False)
     category = Column(String, nullable=False)
 
+    modified = Column(Boolean, default=False)
+
 
 class Quiz(Base):
     __tablename__ = "quiz"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     course_id = Column(Integer, ForeignKey("course.id"))
     question = Column(String, nullable=False)
-    type = Column(String, nullable=False)
     answer = Column(String, nullable=False)
-    choices = Column(String, nullable=False)
-    reason = Column(String, nullable=False)
+    advice = Column(String, nullable=False)
+    embedding_id = Column(String, nullable=False)

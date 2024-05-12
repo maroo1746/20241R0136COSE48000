@@ -20,7 +20,6 @@ splitter = RecursiveCharacterTextSplitter(
 
 
 def make_base_doc(course: schema.Course, user_id: int):
-
     return Document(
         page_content=course.content,
         metadata={
@@ -54,12 +53,22 @@ def update_embeddings(
 
 
 def create_embeddings(course: schema.Course, user_id: int):
+    vdb = get_vectorstore()
+
+    emb_ids = vdb.get(where={"course_id": course.id})["ids"]
+    if emb_ids:
+        vdb.delete(emb_ids)
+
     doc = make_base_doc(course, user_id)
     splits = make_splits(doc)
 
     for i in range(0, len(splits), CHUNK_SIZE):
-        vdb = get_vectorstore()
         vdb.add_documents(splits[i : i + CHUNK_SIZE])
+
+
+def get_embeddings(course_id: int):
+    vdb = get_vectorstore()
+    return vdb.get(where={"course_id": course_id})
 
 
 def transcribe_audio(file_path, department, category):
@@ -114,8 +123,8 @@ def summarize_text(content, department, category):
 
 def split_text(text):
     return RecursiveCharacterTextSplitter(
-        chunk_size=7000,
-        chunk_overlap=0,
+        chunk_size=6000,
+        chunk_overlap=1000,
         separators=["\n\n", "\n", "(?<=\. )"],
         add_start_index=True,
     ).split_text(text)
@@ -144,3 +153,10 @@ def split_mp3(input_file_path, chunk_size_mb=2):
                 chunk_file.write(chunk)
             part_num += 1
             chunk = f.read(chunk_size)
+
+
+def get_embedding_from_id(embedding_id):
+    vdb = get_vectorstore()
+    print(embedding_id)
+    print(vdb.get(ids=embedding_id))
+    return vdb.get(ids=embedding_id)["documents"][0]

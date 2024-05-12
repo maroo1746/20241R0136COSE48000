@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS quiz;
+
 CREATE TABLE IF NOT EXISTS course (
     id SERIAL PRIMARY KEY,
     timestamp timestamp,
@@ -6,7 +8,8 @@ CREATE TABLE IF NOT EXISTS course (
     content text,
     summary text,
     department varchar(255),
-    category varchar(255)
+    category varchar(255),
+    modified boolean
 );
 
 CREATE TABLE IF NOT EXISTS quiz (
@@ -14,6 +17,9 @@ CREATE TABLE IF NOT EXISTS quiz (
     timestamp timestamp,
     course_id integer,
     question text
+    answer text
+    advice text
+    embedding_id text
 );
 
 CREATE TABLE IF NOT EXISTS user_answer (

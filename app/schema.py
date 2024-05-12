@@ -25,3 +25,11 @@ class SummaryInput(BaseModel):
     content: str
     department: str
     category: str
+
+
+class QuestionInput(BaseModel):
+    count: str
+
+
+class AdviceInput(BaseModel):
+    answer: str

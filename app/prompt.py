@@ -1,35 +1,16 @@
-question_system_prompt = """Your mission is to create a quiz with %s questions according to the following contents.
-Each question should have a question, type, answer, choices, and reason.
-The type can be 'choice' or 'short', or 'long'.
-The answer should be the correct answer to the question.
-The choices should be a dictionary with the key as the choice number and the value as the choice.
-The reason should be an explanation of why the answer is correct.
-Your response should be Korean.
+question_system_prompt = """We’ll help students review the class by making some quiz for them.
+Based on the contents of course below, give {count} descriptive question related to important concepts. The answer to the question must be inside the course content. You must output only the quiz.
+You should never say additional words such as "Yes, I understand." or “Sure!”.
+JUST OUTPUT THE QUIZ.
+Your question should be in Korean.
 
-The contents are as follows:
+The course contents are as follows: {content}
 """
 
-question_response_prompt = """Your response MUST BE in the following format:
-[
-  {
-    "question": "다음 중 옳은 것은?",
-    "type": "choice",
-    "answer": 1,
-    "choices": {
-      "1": "컴퓨터는 2진수로 데이터를 처리한다.",
-      "2": "컴퓨터는 10진수로 데이터를 처리한다.",
-      "3": "컴퓨터는 8진수로 데이터를 처리한다.",
-      "4": "컴퓨터는 16진수로 데이터를 처리한다."
-    },
-    "reason": "컴퓨터는 2진수로 데이터를 처리한다."
-  },
-  {
-    "question": "컴퓨터의 CPU는 무엇의 약자인가?",
-    "type": "short",
-    "answer": "Central Processing Unit",
-    "reason": "CPU는 Central Processing Unit의 약자이다."
-  }
-]
+question_response_prompt = """Your response MUST BE in the following example format:
+
+- OSI 7계층을 쓰고, 각각의 계층에 대해 설명하시오.
+- HTTP 통신에서의 멱등성에 대해 설명하고, 각 메서드별로 어떤 멱등성을 가지는지 설명하시오."
 """
 
 correction_prompt = """
@@ -55,5 +36,22 @@ You should never say additional words such as "Yes, I understand." or “Sure!�
 YOUR OUTPUT SHOULD BE IN KOREAN AND MARKDOWN FORMAT.
 The title level starts with h1, and do not include numbering.
 JUST OUTPUT THE SUMMARY, NOTHING ELSE.
-Organize the contents of the lecture in parallel without a title such as "{category}", "{category} 강의 내용".
+Organize the contents of the lecture in parallel. DO NOT give the main title (such as "{category} 강의 내용") and conclusion you made.
 """
+
+advice_prompt = """Now, we will give some feedback to the student’s answer.
+Based on the contents of following content, give some feedback to the answer.
+You should give detail feedback by referring to what part of the class material is written and how it is written.
+The answer should be in Korean.
+The answer should be more than 500 characters.
+You must output only the text of the feedback.
+You should never say additional words such as "Yes, I understand." or “Sure!”. JUST OUTPUT THE FEEDBACK.
+
+content:
+{content}
+
+question:
+{question}
+
+The answer is:
+{answer}"""

@@ -7,7 +7,12 @@ from datetime import datetime, timedelta, timezone
 from openai import OpenAI
 
 from app import models, schema, util, config
-from app.prompt import question_system_prompt, question_response_prompt, summary_prompt
+from app.prompt import (
+    question_system_prompt,
+    question_response_prompt,
+    summary_prompt,
+    advice_prompt,
+)
 from app.dependencies import get_db
 
 router = APIRouter(prefix="/course", tags=["course"])
@@ -27,6 +32,7 @@ def read_course(db: Session = Depends(get_db)):
 def read_course(course_id: str, db: Session = Depends(get_db)):
     course_id = int(course_id)
     course = db.query(models.Course).filter(models.Course.id == course_id).first()
+    print(course)
     if course is None:
         return {"error": "Course not found"}
     return course
@@ -70,6 +76,7 @@ def update_course(
         found_course.summary = course.summary
     found_course.department = course.department
     found_course.category = course.category
+    found_course.modified = True
 
     db.query(models.Course).filter(models.Course.id == course_id).update(
         {
@@ -87,18 +94,102 @@ def update_course(
     return found_course
 
 
+@router.get("/{course_id}/questions")
+def get_questions(course_id: str, db: Session = Depends(get_db)):
+    course_id = int(course_id)
+    questions = db.query(models.Quiz).filter(models.Quiz.course_id == course_id).all()
+    return questions
+
+
 @router.post("/{course_id}/question")
-def create_question(course_id: int, count: Optional[int] = 5):
-    contents = "This is a test."
+def create_question(
+    course_id: int, input: schema.QuestionInput, db: Session = Depends(get_db)
+):
+    course_id = int(course_id)
+    course = db.query(models.Course).filter(models.Course.id == course_id).first()
+
+    print(input.count)
+
+    if course.modified:
+        util.create_embeddings(course, user_id=1)
+        course.modified = False
+        db.query(models.Course).filter(models.Course.id == course_id).update(
+            {models.Course.modified: course.modified}
+        )
+        db.flush()
+    embeddings = util.get_embeddings(course_id)
+
+    print(embeddings["ids"])
+
+    result = []
+
+    for index, embedding in enumerate(embeddings["documents"]):
+        print(index)
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "system",
+                    "content": question_system_prompt.format(
+                        count=input.count, content=embedding
+                    ),
+                },
+                {"role": "system", "content": question_response_prompt},
+            ],
+            model="gpt-3.5-turbo",
+        )
+        for message in chat_completion.choices[0].message.content.split("\n"):
+            if message.strip() != "":
+                quiz = models.Quiz(
+                    course_id=course_id,
+                    question=message.removeprefix("- "),
+                    answer="",
+                    advice="",
+                    embedding_id=embeddings["ids"][index],
+                )
+                db.add(quiz)
+                db.flush()
+                result.append(
+                    {
+                        "id": quiz.id,
+                        "question": message.removeprefix("- "),
+                    }
+                )
+
+    print(result)
+
+    return result
+
+
+@router.post("/{course_id}/question/{question_id}/advice")
+def create_question(
+    course_id: int,
+    question_id: int,
+    input: schema.AdviceInput,
+    db: Session = Depends(get_db),
+):
+    course_id = int(course_id)
+    question_id = int(question_id)
+    question = db.query(models.Quiz).filter(models.Quiz.id == question_id).first()
+
+    embedding = util.get_embedding_from_id(question.embedding_id)
+
     chat_completion = client.chat.completions.create(
         messages=[
             {
                 "role": "system",
-                "content": question_system_prompt % count
-                + contents
-                + question_response_prompt,
-            }
+                "content": advice_prompt.format(
+                    question=question.question,
+                    content=embedding,
+                    answer=input.answer,
+                ),
+            },
         ],
         model="gpt-3.5-turbo",
     )
-    return chat_completion.choices[0].message.content
+
+    advice = chat_completion.choices[0].message.content
+    db.query(models.Quiz).filter(models.Quiz.id == question_id).update(
+        {models.Quiz.advice: advice}
+    )
+    db.flush()
+    return {"advice": advice}
