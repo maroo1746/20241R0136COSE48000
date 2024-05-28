@@ -26,7 +26,7 @@ class Course(Base):
     department = Column(String, nullable=False)
     category = Column(String, nullable=False)
 
-    modified = Column(Boolean, default=False)
+    modified = Column(Boolean, default=True)
     pdf = Column(JSONB, nullable=False, default=[])
 
 

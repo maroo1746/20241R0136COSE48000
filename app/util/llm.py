@@ -19,16 +19,32 @@ splitter = RecursiveCharacterTextSplitter(
 )
 
 
-def make_base_doc(course: schema.Course, user_id: int):
-    return Document(
-        page_content=course.content,
-        metadata={
-            "id": f"{course.id}:0",
-            "course_id": course.id,
-            "created_date": str(course.timestamp),
-            "user_id": user_id,
-        },
-    )
+def make_base_docs(course: schema.Course, user_id: int):
+    docs = [
+        Document(
+            page_content=course.content,
+            metadata={
+                "id": f"{course.id}:0",
+                "course_id": course.id,
+                "created_date": str(course.timestamp),
+                "user_id": user_id,
+            },
+        )
+    ]
+    print(course.pdf)
+    for pdf in course.pdf:
+        docs.append(
+            Document(
+                page_content=pdf["ocr"],
+                metadata={
+                    "id": f"{course.id}:{pdf['id']}",
+                    "course_id": course.id,
+                    "created_date": str(course.timestamp),
+                    "user_id": user_id,
+                },
+            )
+        )
+    return docs
 
 
 def make_splits(doc: Document) -> list[Document]:
@@ -59,8 +75,13 @@ def create_embeddings(course: schema.Course, user_id: int):
     if emb_ids:
         vdb.delete(emb_ids)
 
-    doc = make_base_doc(course, user_id)
-    splits = make_splits(doc)
+    docs = make_base_docs(course, user_id)
+
+    splits = []
+    for doc in docs:
+        splits.extend(make_splits(doc))
+        for i in range(0, len(splits), CHUNK_SIZE):
+            vdb.add_documents(splits[i : i + CHUNK_SIZE])
 
     for i in range(0, len(splits), CHUNK_SIZE):
         vdb.add_documents(splits[i : i + CHUNK_SIZE])
@@ -98,7 +119,6 @@ def transcribe_audio(file_path, department, category):
             .choices[0]
             .message.content
         )
-        print(transcription)
     return transcription
 
 
@@ -158,6 +178,14 @@ def split_mp3(input_file_path, chunk_size_mb=2):
 
 def get_embedding_from_id(embedding_id):
     vdb = get_vectorstore()
-    print(embedding_id)
-    print(vdb.get(ids=embedding_id))
     return vdb.get(ids=embedding_id)["documents"][0]
+
+
+def search(text, course_id):
+    vdb = get_vectorstore()
+    docs = vdb.similarity_search(text, k=3, filter={"course_id": course_id})
+    contents = ""
+    for doc in docs:
+        print(doc.page_content[:100])
+        contents += doc.page_content + "\n"
+    return contents

@@ -6,5 +6,5 @@ def ocr(file: UploadFile):
     reader = PdfReader(file.file)
     text = ""
     for page in reader.pages:
-        text += page.extract_text()
+        text += page.extract_text() + "\n"
     return text

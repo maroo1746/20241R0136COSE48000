@@ -8,7 +8,7 @@ class CourseInput(BaseModel):
     summary: Optional[str] = None
     department: str
     category: str
-    pdf: List[str]
+    pdf: List[dict]
 
 
 class Course(BaseModel):
@@ -20,6 +20,7 @@ class Course(BaseModel):
 
     department: str
     category: str
+    pdf: List[dict]
 
 
 class SummaryInput(BaseModel):

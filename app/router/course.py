@@ -31,7 +31,6 @@ def read_course(db: Session = Depends(get_db)):
 def read_course(course_id: str, db: Session = Depends(get_db)):
     course_id = int(course_id)
     course = db.query(models.Course).filter(models.Course.id == course_id).first()
-    print(course)
     if course is None:
         return {"error": "Course not found"}
     return course
@@ -74,6 +73,8 @@ def update_course(
         found_course.content = course.content
     if course.summary is not None:
         found_course.summary = course.summary
+    # jsonb
+    found_course.pdf = course.pdf
     found_course.department = course.department
     found_course.category = course.category
     found_course.modified = True
@@ -108,8 +109,6 @@ def create_question(
     course_id = int(course_id)
     course = db.query(models.Course).filter(models.Course.id == course_id).first()
 
-    print(input.count)
-
     if course.modified:
         llm.create_embeddings(course, user_id=1)
         course.modified = False
@@ -119,14 +118,11 @@ def create_question(
         db.flush()
     embeddings = llm.get_embeddings(course_id)
 
-    print(embeddings["ids"])
-
     result = []
 
     db.query(models.Quiz).filter(models.Quiz.course_id == course_id).delete()
 
     for index, embedding in enumerate(embeddings["documents"]):
-        print(index)
         chat_completion = client.chat.completions.create(
             messages=[
                 {
@@ -157,13 +153,11 @@ def create_question(
                     }
                 )
 
-    print(result)
-
     return result
 
 
 @router.post("/{course_id}/question/{question_id}/advice")
-def create_question(
+def create_advice(
     course_id: int,
     question_id: int,
     input: schema.AdviceInput,
@@ -173,7 +167,7 @@ def create_question(
     question_id = int(question_id)
     question = db.query(models.Quiz).filter(models.Quiz.id == question_id).first()
 
-    embedding = llm.get_embedding_from_id(question.embedding_id)
+    embedding = llm.search(question.question, course_id)
 
     chat_completion = client.chat.completions.create(
         messages=[
