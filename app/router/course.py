@@ -1,19 +1,18 @@
 from fastapi import Depends, APIRouter
 from sqlalchemy.orm import Session
 
-from typing import Optional
 from datetime import datetime, timedelta, timezone
 
 from openai import OpenAI
 
-from app import models, schema, util, config
+from app import models, schema, config
 from app.prompt import (
     question_system_prompt,
     question_response_prompt,
-    summary_prompt,
     advice_prompt,
 )
 from app.dependencies import get_db
+from app.util import llm
 
 router = APIRouter(prefix="/course", tags=["course"])
 
@@ -50,6 +49,7 @@ def create_course(course: schema.CourseInput, db: Session = Depends(get_db)):
         timestamp=now,
         department=course.department,
         category=course.category,
+        pdf=course.pdf,
     )
     db.add(course)
     db.flush()
@@ -111,13 +111,13 @@ def create_question(
     print(input.count)
 
     if course.modified:
-        util.create_embeddings(course, user_id=1)
+        llm.create_embeddings(course, user_id=1)
         course.modified = False
         db.query(models.Course).filter(models.Course.id == course_id).update(
             {models.Course.modified: course.modified}
         )
         db.flush()
-    embeddings = util.get_embeddings(course_id)
+    embeddings = llm.get_embeddings(course_id)
 
     print(embeddings["ids"])
 
@@ -173,7 +173,7 @@ def create_question(
     question_id = int(question_id)
     question = db.query(models.Quiz).filter(models.Quiz.id == question_id).first()
 
-    embedding = util.get_embedding_from_id(question.embedding_id)
+    embedding = llm.get_embedding_from_id(question.embedding_id)
 
     chat_completion = client.chat.completions.create(
         messages=[

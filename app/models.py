@@ -1,4 +1,5 @@
 from sqlalchemy import Integer, String, DateTime, ForeignKey, Boolean
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql.schema import Column
 
 from app.database import Base
@@ -26,6 +27,7 @@ class Course(Base):
     category = Column(String, nullable=False)
 
     modified = Column(Boolean, default=False)
+    pdf = Column(JSONB, nullable=False, default=[])
 
 
 class Quiz(Base):

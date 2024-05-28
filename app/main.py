@@ -9,8 +9,8 @@ import concurrent.futures
 import time
 
 
-from app import config, router, util, schema
-from app.prompt import summary_prompt
+from app import config, router, schema
+from app.util import llm, ocr
 
 client = OpenAI(
     api_key=config.OPENAI_API_KEY,
@@ -38,14 +38,14 @@ async def upload_media(
     with open(f"media/{filename}", "wb") as f:
         f.write(file_content)
     timeB = time.time()
-    util.split_mp3(f"media/{filename}")
+    llm.split_mp3(f"media/{filename}")
     timeC = time.time()
     file_name = Path(filename).stem
     transcriptions = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
         future_to_file_path = {
             executor.submit(
-                util.transcribe_audio,
+                llm.transcribe_audio,
                 f"media/{file_name}/{file_path}",
                 department,
                 category,
@@ -82,7 +82,7 @@ async def upload_media(
 def create_summary(
     summaryInput: schema.SummaryInput,
 ):
-    contents = util.split_text(summaryInput.content)
+    contents = llm.split_text(summaryInput.content)
 
     for content in contents:
         print(len(content))
@@ -91,7 +91,7 @@ def create_summary(
     with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
         future_to_content = {
             executor.submit(
-                util.summarize_text,
+                llm.summarize_text,
                 content,
                 summaryInput.department,
                 summaryInput.category,
@@ -110,6 +110,16 @@ def create_summary(
     summaries.sort(key=lambda x: x[0])
 
     return {"summaries": summaries}
+
+
+@app.post("/ocr")
+def ocr_pdf(
+    file: UploadFile = File(...),
+):
+    text = ocr.ocr(file)
+    print(text)
+
+    return {"text": text}
 
 
 origins = [

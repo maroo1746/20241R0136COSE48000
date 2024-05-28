@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 
 
 class CourseInput(BaseModel):
@@ -8,6 +8,7 @@ class CourseInput(BaseModel):
     summary: Optional[str] = None
     department: str
     category: str
+    pdf: List[str]
 
 
 class Course(BaseModel):
