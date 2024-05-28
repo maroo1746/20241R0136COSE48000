@@ -137,7 +137,7 @@ def create_question(
                 },
                 {"role": "system", "content": question_response_prompt},
             ],
-            model="gpt-4-turbo",
+            model="gpt-4o",
         )
         for message in chat_completion.choices[0].message.content.split("\n"):
             if message.strip() != "":
@@ -186,7 +186,7 @@ def create_question(
             },
             {"role": "user", "content": input.answer},
         ],
-        model="gpt-4-turbo",
+        model="gpt-4",
     )
 
     advice = chat_completion.choices[0].message.content
